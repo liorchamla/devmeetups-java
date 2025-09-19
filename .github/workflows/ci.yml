@@ -21,3 +21,20 @@ jobs:
         with:
           name: jacoco-report
           path: app/target/site/jacoco
+
+      - name: Upload Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: app/target/surefire-reports
+
+      - name: Upload Checkstyle/PMD
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis
+          path: |
+            app/target/checkstyle-result.xml
+            app/target/pmd.xml
+

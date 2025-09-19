@@ -6,22 +6,20 @@
     <version>3.3.0</version>
     <relativePath/>
   </parent>
-
   <groupId>com.devmeetups</groupId>
   <artifactId>app</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>DevMeetups</name>
   <description>DevMeetups API</description>
-
   <properties>
     <java.version>21</java.version>
     <maven.compiler.release>21</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <checkstyle.version>10.17.0</checkstyle.version>
-    <pmd.version>3.22.0</pmd.version>
     <jacoco.version>0.8.12</jacoco.version>
+    <checkstyle.version>10.18.2</checkstyle.version>
+    <pmd.version>3.23.0</pmd.version>
+    <pmd.targetJdk>21</pmd.targetJdk>
   </properties>
-
   <dependencies>
     <!-- API -->
     <dependency>
@@ -32,7 +30,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
-
     <!-- Tests -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -40,7 +37,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
   <build>
     <plugins>
       <!-- Unit tests -->
@@ -52,7 +48,6 @@
           <useModulePath>false</useModulePath>
         </configuration>
       </plugin>
-
       <!-- Coverage -->
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -73,7 +68,6 @@
           </execution>
         </executions>
       </plugin>
-
       <!-- Checkstyle -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -84,13 +78,16 @@
             <groupId>com.puppycrawl.tools</groupId>
             <artifactId>checkstyle</artifactId>
             <version>${checkstyle.version}</version>
+            <!-- 10.18.2 -->
           </dependency>
         </dependencies>
         <executions>
           <execution>
             <id>checkstyle</id>
             <phase>verify</phase>
-            <goals><goal>check</goal></goals>
+            <goals>
+              <goal>check</goal>
+            </goals>
             <configuration>
               <configLocation>google_checks.xml</configLocation>
               <encoding>UTF-8</encoding>
@@ -100,7 +97,6 @@
           </execution>
         </executions>
       </plugin>
-
       <!-- PMD -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -109,8 +105,11 @@
         <executions>
           <execution>
             <phase>verify</phase>
-            <goals><goal>check</goal></goals>
+            <goals>
+              <goal>check</goal>
+            </goals>
             <configuration>
+              <targetJdk>${pmd.targetJdk}</targetJdk>
               <printFailingErrors>true</printFailingErrors>
               <failOnViolation>true</failOnViolation>
               <rulesets>
