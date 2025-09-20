@@ -1,4 +1,9 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.debug.settings.onBuildFailureProceed": true,
+  "runOnSave.commands": [
+    { "match": "src/test/java/.*\\.java$", "command": "testing.runCurrentFile", "runIn": "vscode" },
+    { "match": "src/main/java/.*\\.java$", "command": "testing.coverageAll", "runIn": "vscode" }
+  ]
 }
