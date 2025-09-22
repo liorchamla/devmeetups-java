@@ -22,3 +22,10 @@
 - Mise en place de tests unitaires sur la documentation OpenAPI elle même ("culture contrat")
 - Mise en place aussi de settings pour VSCode afin de lancer les tests à chaque sauvegarde
 - Mise en place de "HMR" dans le serveur web
+
+# Jour 2 : JPA
+- Mapping de Event et Registration avec la base de données via JPA
+- Création des repositorys (bizarre mais ça passe par des interfaces)
+- Tests des repositories avec les @Testcontainer qui permettent de ne pas avoir à créer un container docker pour les tests, ça tourne directement dans la suite
+- Tests des controllers qui incluent maintenant toute la stack grâce à @SpringBootTest et @AutoconfigureMockMvc pour garder l'objet mvc
+- Création d'un makefile pour faciliter les tâches de test, run, migration flyway etc

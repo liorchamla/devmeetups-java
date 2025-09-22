@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/events")
-class EventsController {
+public class EventsController {
 
   private final List<EventSummary> inMemory = new ArrayList<>(
       List.of(new EventSummary(
@@ -43,6 +43,7 @@ class EventsController {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Créer un événement", description = "Crée un événement après validation", tags = { "events" })
+  @ApiResponse(responseCode = "400", description = "Erreur de validation", content = @Content(schema = @Schema(implementation = com.devmeetups.app.error.ErrorDoc.class)))
   EventSummary create(
       @Valid @RequestBody @Parameter(content = @Content(mediaType = "application/json")) CreateEventRequest req) {
     // mapping trivial pour l’instant

@@ -1,14 +1,13 @@
-package com.devmeetups.app.events.api;
+package com.devmeetups.app.registrations.api;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -24,17 +23,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.devmeetups.app.events.Event;
 import com.devmeetups.app.events.repository.EventsRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.devmeetups.app.registrations.repository.RegistrationsRepository;
 
 import jakarta.transaction.Transactional;
 
-// @WebMvcTest(controllers = EventsController.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class EventsControllerWebTest {
-
+class RegistrationWebContractTest {
   @Container
   static final MariaDBContainer<?> DB = new MariaDBContainer<>("mariadb:11");
 
@@ -50,46 +47,62 @@ class EventsControllerWebTest {
 
   @Autowired
   MockMvc mvc;
+
   @Autowired
-  ObjectMapper om;
+  RegistrationsRepository registrationsRepository;
+
   @Autowired
   EventsRepository eventsRepository;
 
-  @Test
-  @Transactional
-  void get_events_ok() throws Exception {
+  @BeforeEach
+  void seedEvent() {
     eventsRepository.save(new Event(
-        "spring-boot-kickoff", "Spring Boot Kickoff", null, "Paris",
+        "devmeetups-paris", "DevMeetups Paris", null, "Paris",
         new BigDecimal("0.00"), Instant.now().plusSeconds(86_400), true, null));
-
-    mvc.perform(get("/events"))
-        .andExpect(status().isOk())
-        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$[0].slug").value("spring-boot-kickoff"));
   }
 
   @Test
-  void post_event_validation_error() throws Exception {
-    var bad = new CreateEventRequest(
-        "INVALID SLUG", "Title", Instant.now(), "Paris", new BigDecimal("10.00"), false, "img");
-    mvc.perform(post("/events")
+  @Transactional
+  void happy_path() throws Exception {
+    mvc.perform(post("/events/devmeetups-paris/registrations")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(om.writeValueAsString(bad)))
+        .content("{\"email\":\"alice@mail.test\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.eventSlug").value("devmeetups-paris"))
+        .andExpect(jsonPath("$.email").value("alice@mail.test"));
+  }
+
+  @Test
+  @Transactional
+  void bad_request_missing_email() throws Exception {
+    mvc.perform(post("/events/devmeetups-paris/registrations")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{}"))
         .andExpect(status().isBadRequest());
   }
 
   @Test
   @Transactional
-  void post_event_created() throws Exception {
-    var ok = new CreateEventRequest(
-        "devmeetups-lyon", "DevMeetups Lyon",
-        Instant.now().plusSeconds(7200), "Lyon",
-        new BigDecimal("0.00"), true, "https://img.example/2.png");
-
-    mvc.perform(post("/events")
+  void bad_request_bad_email() throws Exception {
+    mvc.perform(post("/events/devmeetups-paris/registrations")
         .contentType(MediaType.APPLICATION_JSON)
-        .content(om.writeValueAsString(ok)))
+        .content("{\"email\":\"not-an-email\"}"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @Transactional
+  void bad_request_conflict() throws Exception {
+    mvc.perform(post("/events/devmeetups-paris/registrations")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"email\":\"charlie@mail.test\"}"))
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.slug").value("devmeetups-lyon"));
+        .andExpect(jsonPath("$.eventSlug").value("devmeetups-paris"))
+        .andExpect(jsonPath("$.email").value("charlie@mail.test"));
+
+    mvc.perform(post("/events/devmeetups-paris/registrations")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"email\":\"charlie@mail.test\"}"))
+        .andExpect(status().isConflict());
   }
 }
